@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SRA Panel - Student Result Analyzer',
-  description: 'Upload, analyze, and visualize student result data with AI insights.',
+  title: 'Mapoly - Student Result Analyzer',
+  description: 'Upload, analyze, and visualize student result data for Moshood Abiola Polytechnic with AI insights.',
 };
 
 export default function RootLayout({

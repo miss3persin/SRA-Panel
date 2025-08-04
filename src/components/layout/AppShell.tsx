@@ -16,8 +16,9 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { UploadCloud, LayoutDashboard, Brain } from 'lucide-react';
+import { UploadCloud, LayoutDashboard } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEffect, useState } from 'react';
@@ -53,8 +54,15 @@ export default function AppShell({ children }: AppShellProps) {
         <SidebarRail />
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center">
-            <Brain className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-semibold tracking-tight group-data-[collapsible=icon]:hidden">SRA Panel</h1>
+            <Image 
+              src="/mapoly-logo.png"
+              alt="Mapoly Logo"
+              width={40}
+              height={40}
+              className="group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:h-8"
+              priority
+            />
+            <h1 className="text-2xl font-semibold tracking-tight group-data-[collapsible=icon]:hidden">Mapoly SRA</h1>
           </Link>
         </SidebarHeader>
         <SidebarContent className="p-2">
@@ -78,7 +86,7 @@ export default function AppShell({ children }: AppShellProps) {
         <SidebarFooter className="p-4 mt-auto">
            <Separator className="my-2 group-data-[collapsible=icon]:hidden" />
            <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
-            &copy; {new Date().getFullYear()} SRA Panel
+            &copy; {new Date().getFullYear()} Mapoly SRA
            </p>
         </SidebarFooter>
       </Sidebar>
@@ -87,7 +95,7 @@ export default function AppShell({ children }: AppShellProps) {
           <div className="flex items-center gap-2">
              <SidebarTrigger /> {/* Removed md:hidden to allow toggle on desktop */}
              <h2 className="text-xl font-semibold">
-                {navItems.find(item => item.href === pathname)?.label || 'SRA Panel'}
+                {navItems.find(item => item.href === pathname)?.label || 'Mapoly SRA'}
              </h2>
           </div>
           {/* Placeholder for global actions */}

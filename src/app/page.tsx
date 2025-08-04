@@ -14,7 +14,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      <p className="mt-4 text-lg text-muted-foreground">Loading SRA Panel...</p>
+      <p className="mt-4 text-lg text-muted-foreground">Loading Mapoly SRA...</p>
     </div>
   );
 }

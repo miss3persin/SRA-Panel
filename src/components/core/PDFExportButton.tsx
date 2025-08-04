@@ -17,7 +17,7 @@ interface PDFExportButtonProps {
 
 export default function PDFExportButton({
   elementIdToPrint,
-  fileName = "SRA_Panel_Report",
+  fileName = "Mapoly_SRA_Report",
   buttonText = "Export as PDF"
 }: PDFExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
