@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Mapoly - Student Result Analyzer',
   description: 'Upload, analyze, and visualize student result data for Moshood Abiola Polytechnic with AI insights.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
