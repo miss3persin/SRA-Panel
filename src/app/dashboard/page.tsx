@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AverageScorePerCourseChart from '@/components/charts/AverageScorePerCourseChart';
 import PassFailDistributionChart from '@/components/charts/PassFailDistributionChart';
 import AiInsightsDisplay from '@/components/insights/AiInsightsDisplay';
@@ -20,7 +20,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, Brain, FilterX, Loader2 } from "lucide-react";
 import DataTable from '@/components/core/DataTable';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const { 
     rawStudentData,
     processedStudentData,
@@ -37,9 +37,11 @@ export default function DashboardPage() {
     setIsLoadingInsights,
   } = useData();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false);
+  const view = searchParams.get('view') || 'overview';
 
   useEffect(() => {
     setIsClient(true);
@@ -132,6 +134,95 @@ export default function DashboardPage() {
   
   const activeFilterCount = Object.values(filters).filter(f => f !== null).length;
 
+  const renderContent = () => {
+    switch(view) {
+      case 'performance':
+        return <OverallPerformanceCard metrics={overallPerformance} isLoading={processedStudentData.length === 0 && rawStudentData.length > 0} />;
+      case 'charts':
+        return (
+          <div id="charts-grid-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AverageScorePerCourseChart data={filteredData} />
+            <PassFailDistributionChart data={filteredData} />
+          </div>
+        );
+      case 'datatable':
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>Filtered Data Table</CardTitle>
+              <CardDescription>
+                Displaying {filteredData.length} of {processedStudentData.length} records based on current filters.
+                Sorting by a column header effectively ranks students/data for that criterion.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DataTable data={filteredData} />
+            </CardContent>
+          </Card>
+        );
+      case 'insights':
+        return (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl">AI Insights Engine</CardTitle>
+                <CardDescription>Identify at-risk students, top performers, and challenging courses using AI analysis.</CardDescription>
+              </div>
+              <Button onClick={handleGenerateInsights} disabled={isLoadingInsights || rawStudentData.length === 0}>
+                {isLoadingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
+                {aiInsights ? 'Regenerate AI Insights' : 'Generate AI Insights'}
+              </Button>
+            </CardHeader>
+            {aiInsights && (
+              <CardContent>
+                <AiInsightsDisplay insights={aiInsights} isLoading={isLoadingInsights} />
+              </CardContent>
+            )}
+          </Card>
+        );
+      case 'overview':
+      default:
+        return (
+          <>
+            <OverallPerformanceCard metrics={overallPerformance} isLoading={processedStudentData.length === 0 && rawStudentData.length > 0} />
+            <div id="charts-grid-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AverageScorePerCourseChart data={filteredData} />
+              <PassFailDistributionChart data={filteredData} />
+            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtered Data Table</CardTitle>
+                <CardDescription>
+                  Displaying {filteredData.length} of {processedStudentData.length} records based on current filters.
+                  Sorting by a column header effectively ranks students/data for that criterion.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DataTable data={filteredData} />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">AI Insights Engine</CardTitle>
+                  <CardDescription>Identify at-risk students, top performers, and challenging courses using AI analysis.</CardDescription>
+                </div>
+                <Button onClick={handleGenerateInsights} disabled={isLoadingInsights || rawStudentData.length === 0}>
+                  {isLoadingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
+                  {aiInsights ? 'Regenerate AI Insights' : 'Generate AI Insights'}
+                </Button>
+              </CardHeader>
+              {aiInsights && (
+                <CardContent>
+                  <AiInsightsDisplay insights={aiInsights} isLoading={isLoadingInsights} />
+                </CardContent>
+              )}
+            </Card>
+          </>
+        );
+    }
+  }
+
   return (
     <div className="space-y-8" id="dashboard-content">
       <Card>
@@ -178,44 +269,17 @@ export default function DashboardPage() {
           </Button>
         </CardContent>
       </Card>
-
-      <OverallPerformanceCard metrics={overallPerformance} isLoading={processedStudentData.length === 0 && rawStudentData.length > 0} />
-
-      <div id="charts-grid-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AverageScorePerCourseChart data={filteredData} />
-        <PassFailDistributionChart data={filteredData} />
-      </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtered Data Table</CardTitle>
-          <CardDescription>
-            Displaying {filteredData.length} of {processedStudentData.length} records based on current filters.
-            Sorting by a column header effectively ranks students/data for that criterion.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataTable data={filteredData} />
-        </CardContent>
-      </Card>
+      {renderContent()}
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-2xl">AI Insights Engine</CardTitle>
-            <CardDescription>Identify at-risk students, top performers, and challenging courses using AI analysis.</CardDescription>
-          </div>
-          <Button onClick={handleGenerateInsights} disabled={isLoadingInsights || rawStudentData.length === 0}>
-            {isLoadingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
-            {aiInsights ? 'Regenerate AI Insights' : 'Generate AI Insights'}
-          </Button>
-        </CardHeader>
-        {aiInsights && ( // Conditionally render CardContent
-          <CardContent>
-            <AiInsightsDisplay insights={aiInsights} isLoading={isLoadingInsights} />
-          </CardContent>
-        )}
-      </Card>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

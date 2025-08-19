@@ -109,20 +109,63 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [processedStudentData, filters]);
 
   const overallPerformance = useMemo(() : OverallPerformanceMetrics => {
-    if (processedStudentData.length === 0) {
-      return { totalUniqueStudents: 0, overallAverageScore: 0, overallPassRate: 0 };
+    const data = processedStudentData;
+    if (data.length === 0) {
+      return { 
+        totalUniqueStudents: 0, 
+        overallAverageScore: 0, 
+        overallPassRate: 0,
+        medianScore: 0,
+        modeScore: 'N/A',
+        standardDeviation: 0
+      };
     }
-    const uniqueStudents = new Set(processedStudentData.map(s => s['Matric No']));
-    const totalScores = processedStudentData.reduce((sum, s) => sum + s.Score, 0);
-    const passedEntries = processedStudentData.filter(s => s.pass).length;
-    const averageScore = processedStudentData.length > 0 ? totalScores / processedStudentData.length : 0;
-    const passRate = processedStudentData.length > 0 ? (passedEntries / processedStudentData.length) * 100 : 0;
+    const uniqueStudents = new Set(data.map(s => s['Matric No']));
+    const scores = data.map(s => s.Score);
 
+    // Mean (Average)
+    const totalScores = scores.reduce((sum, score) => sum + score, 0);
+    const averageScore = data.length > 0 ? totalScores / data.length : 0;
+
+    // Pass Rate
+    const passedEntries = data.filter(s => s.pass).length;
+    const passRate = data.length > 0 ? (passedEntries / data.length) * 100 : 0;
+
+    // Median
+    const sortedScores = [...scores].sort((a, b) => a - b);
+    const mid = Math.floor(sortedScores.length / 2);
+    const medianScore = sortedScores.length % 2 !== 0 ? sortedScores[mid] : (sortedScores[mid - 1] + sortedScores[mid]) / 2;
+
+    // Mode
+    const frequencyMap: { [key: number]: number } = {};
+    scores.forEach(score => {
+        frequencyMap[score] = (frequencyMap[score] || 0) + 1;
+    });
+    let maxFreq = 0;
+    let modes: number[] = [];
+    for (const score in frequencyMap) {
+        if (frequencyMap[score] > maxFreq) {
+            modes = [Number(score)];
+            maxFreq = frequencyMap[score];
+        } else if (frequencyMap[score] === maxFreq) {
+            modes.push(Number(score));
+        }
+    }
+    const modeScore = modes.length === 1 ? modes[0] : (modes.length > 1 ? modes.join(', ') : 'N/A');
+
+    // Standard Deviation
+    const mean = averageScore;
+    const squaredDiffs = scores.map(score => Math.pow(score - mean, 2));
+    const avgSquaredDiff = squaredDiffs.reduce((sum, diff) => sum + diff, 0) / scores.length;
+    const standardDeviation = Math.sqrt(avgSquaredDiff);
 
     return {
       totalUniqueStudents: uniqueStudents.size,
       overallAverageScore: parseFloat(averageScore.toFixed(2)),
       overallPassRate: parseFloat(passRate.toFixed(2)),
+      medianScore: parseFloat(medianScore.toFixed(2)),
+      modeScore: typeof modeScore === 'number' ? parseFloat(modeScore.toFixed(2)) : modeScore,
+      standardDeviation: parseFloat(standardDeviation.toFixed(2))
     };
   }, [processedStudentData]);
 

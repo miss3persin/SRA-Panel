@@ -114,6 +114,9 @@ export interface PassFailDistribution {
 // For Overall Performance Metrics
 export interface OverallPerformanceMetrics {
   totalUniqueStudents: number;
-  overallAverageScore: number;
+  overallAverageScore: number; // Mean
   overallPassRate: number; // Percentage
+  medianScore: number;
+  modeScore: number | string; // Can be a string like "Multiple"
+  standardDeviation: number;
 }
