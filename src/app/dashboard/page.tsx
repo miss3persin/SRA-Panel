@@ -231,7 +231,7 @@ function DashboardContent() {
                 <CardTitle className="text-2xl">Data Filters</CardTitle>
                 <CardDescription>Refine the data displayed in charts and tables below.</CardDescription>
             </div>
-             <PDFExportButton elementIdToPrint="dashboard-content" fileName="SRA_Panel_Dashboard_Report" />
+             <PDFExportButton elementIdToPrint="dashboard-content" fileName="Mapoly_SRA_Report" />
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
@@ -283,3 +283,5 @@ export default function DashboardPage() {
     </Suspense>
   );
 }
+
+    
