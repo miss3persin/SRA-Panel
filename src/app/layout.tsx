@@ -6,6 +6,7 @@ import { DataProvider } from '@/contexts/DataContext';
 import AppShell from '@/components/layout/AppShell';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import { ThemeProvider } from '@/components/core/ThemeProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,21 +29,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning={true}>
+    <html lang="en" suppressHydrationWarning={true}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning={true}>
-        <DataProvider>
-          <Suspense fallback={
-            <div className="flex flex-col items-center justify-center min-h-screen">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-lg text-muted-foreground">Loading Mapoly SRA...</p>
-            </div>
-          }>
-            <AppShell>
-              {children}
-            </AppShell>
-          </Suspense>
-          <Toaster />
-        </DataProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <DataProvider>
+            <Suspense fallback={
+              <div className="flex flex-col items-center justify-center min-h-screen">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <p className="mt-4 text-lg text-muted-foreground">Loading Mapoly SRA...</p>
+              </div>
+            }>
+              <AppShell>
+                {children}
+              </AppShell>
+            </Suspense>
+            <Toaster />
+          </DataProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

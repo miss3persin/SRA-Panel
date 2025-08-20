@@ -20,12 +20,13 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { UploadCloud, LayoutDashboard, BarChart3, TestTube2, Table2, Sigma, ChevronDown } from 'lucide-react';
+import { UploadCloud, LayoutDashboard, BarChart3, TestTube2, Table2, Sigma, Info } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEffect, useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '../core/ThemeToggle';
 
 interface AppShellProps {
   children: ReactNode;
@@ -44,6 +45,7 @@ const navItems = [
       { href: '/dashboard?view=insights', label: 'AI Insights', icon: Sigma },
     ]
   },
+  { href: '/about', label: 'About', icon: Info },
 ];
 
 export default function AppShell({ children }: AppShellProps) {
@@ -79,7 +81,7 @@ export default function AppShell({ children }: AppShellProps) {
         </SidebarHeader>
         <SidebarContent className="p-2">
             <Accordion type="multiple" className="w-full group-data-[collapsible=icon]:hidden" defaultValue={['dashboard']}>
-              <SidebarMenu>
+              <SidebarMenu className="gap-2">
                 <SidebarMenuItem>
                   <Link href="/upload" legacyBehavior passHref>
                     <SidebarMenuButton
@@ -97,7 +99,7 @@ export default function AppShell({ children }: AppShellProps) {
                        <Link href="/dashboard" legacyBehavior passHref>
                           <SidebarMenuButton
                             isActive={pathname === '/dashboard' && !currentView}
-                            className="w-full justify-start pr-1"
+                            className="flex-1 justify-start pr-1"
                           >
                             <LayoutDashboard />
                             <span>Dashboard</span>
@@ -125,12 +127,24 @@ export default function AppShell({ children }: AppShellProps) {
                     </SidebarMenuSub>
                   </AccordionContent>
                 </AccordionItem>
+                <SidebarMenuItem>
+                  <Link href="/about" legacyBehavior passHref>
+                    <SidebarMenuButton
+                      isActive={pathname === '/about'}
+                      tooltip={{ children: 'About', className: "group-data-[collapsible=icon]:block hidden" }}
+                      onClick={() => isMobile && setSidebarOpen(false)}
+                    >
+                      <Info />
+                      <span>About</span>
+                    </SidebarMenuButton>
+                  </Link>
+                </SidebarMenuItem>
               </SidebarMenu>
             </Accordion>
             
             {/* Icon-only view for collapsed sidebar */}
             <div className="hidden group-data-[collapsible=icon]:block">
-              <SidebarMenu>
+              <SidebarMenu className="gap-2">
                  <SidebarMenuItem>
                     <Link href="/upload" legacyBehavior passHref>
                       <SidebarMenuButton
@@ -150,6 +164,17 @@ export default function AppShell({ children }: AppShellProps) {
                         >
                             <LayoutDashboard />
                         </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <Link href="/about" legacyBehavior passHref>
+                      <SidebarMenuButton
+                        isActive={pathname === '/about'}
+                        tooltip={{ children: 'About' }}
+                        onClick={() => isMobile && setSidebarOpen(false)}
+                      >
+                        <Info />
+                      </SidebarMenuButton>
                     </Link>
                   </SidebarMenuItem>
               </SidebarMenu>
@@ -172,7 +197,7 @@ export default function AppShell({ children }: AppShellProps) {
                 {navItems.find(item => item.href === pathname)?.subItems?.find(sub => `?view=${currentView}` === sub.href.replace('/dashboard', ''))?.label || navItems.find(item => item.href === pathname)?.label || 'Mapoly SRA'}
              </h2>
           </div>
-          {/* Placeholder for global actions */}
+          <ThemeToggle />
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           {children}
