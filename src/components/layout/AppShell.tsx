@@ -16,17 +16,21 @@ import {
   SidebarRail,
   SidebarMenuSub,
   SidebarMenuSubButton,
+  sidebarMenuButtonVariants,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { UploadCloud, LayoutDashboard, BarChart3, TestTube2, Table2, Sigma, Info } from 'lucide-react';
+import { UploadCloud, LayoutDashboard, BarChart3, TestTube2, Table2, Sigma, Info, LayoutGrid } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useEffect, useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '../core/ThemeToggle';
+import { cn } from '@/lib/utils';
+import * as AccordionPrimitive from "@radix-ui/react-accordion"
+
 
 interface AppShellProps {
   children: ReactNode;
@@ -39,6 +43,7 @@ const navItems = [
     label: 'Dashboard', 
     icon: LayoutDashboard,
     subItems: [
+      { href: '/dashboard?view=overview', label: 'Overview', icon: LayoutGrid },
       { href: '/dashboard?view=performance', label: 'Performance', icon: BarChart3 },
       { href: '/dashboard?view=charts', label: 'Charts', icon: TestTube2 },
       { href: '/dashboard?view=datatable', label: 'Data Table', icon: Table2 },
@@ -95,18 +100,21 @@ export default function AppShell({ children }: AppShellProps) {
                   </Link>
                 </SidebarMenuItem>
                 <AccordionItem value="dashboard" className="border-none">
-                    <div className="flex items-center w-full">
-                       <Link href="/dashboard" legacyBehavior passHref>
-                          <SidebarMenuButton
-                            isActive={pathname === '/dashboard' && !currentView}
-                            className="flex-1 justify-start pr-1"
-                          >
-                            <LayoutDashboard />
-                            <span>Dashboard</span>
-                          </SidebarMenuButton>
-                        </Link>
-                        <AccordionTrigger className='p-2 hover:no-underline [&>svg]:h-4 [&>svg]:w-4'/>
-                    </div>
+                    <AccordionPrimitive.Header className="flex">
+                        <div
+                            className={cn(
+                                sidebarMenuButtonVariants({ variant: 'ghost', size: 'default' }),
+                                "w-full justify-between h-auto p-0",
+                                pathname === '/dashboard' && "bg-sidebar-accent text-sidebar-accent-foreground"
+                            )}
+                        >
+                            <div className="flex items-center gap-2 p-2">
+                                <LayoutDashboard />
+                                <span>Dashboard</span>
+                            </div>
+                            <AccordionTrigger className='p-2 hover:no-underline [&>svg]:h-4 [&>svg]:w-4'/>
+                        </div>
+                    </AccordionPrimitive.Header>
 
                   <AccordionContent className="p-0 pl-7">
                     <SidebarMenuSub>
@@ -114,7 +122,7 @@ export default function AppShell({ children }: AppShellProps) {
                         <SidebarMenuItem key={subItem.href}>
                            <Link href={subItem.href} legacyBehavior passHref>
                               <SidebarMenuSubButton
-                                isActive={pathname === '/dashboard' && currentView === subItem.href.split('=')[1]}
+                                isActive={pathname === '/dashboard' && (currentView === subItem.href.split('=')[1] || (!currentView && subItem.href.includes('overview')))}
                                 onClick={() => isMobile && setSidebarOpen(false)}
                                 className="w-full"
                               >
@@ -194,7 +202,7 @@ export default function AppShell({ children }: AppShellProps) {
           <div className="flex items-center gap-2">
              <SidebarTrigger />
              <h2 className="text-xl font-semibold">
-                {navItems.find(item => item.href === pathname)?.subItems?.find(sub => `?view=${currentView}` === sub.href.replace('/dashboard', ''))?.label || navItems.find(item => item.href === pathname)?.label || 'Mapoly SRA'}
+                {navItems.find(item => item.href === pathname)?.subItems?.find(sub => `?view=${currentView}` === sub.href.replace('/dashboard', ''))?.label || navItems.find(item => item.href === pathname)?.label || 'Dashboard Overview'}
              </h2>
           </div>
           <ThemeToggle />
@@ -206,3 +214,4 @@ export default function AppShell({ children }: AppShellProps) {
     </SidebarProvider>
   );
 }
+

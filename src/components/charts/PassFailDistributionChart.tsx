@@ -12,8 +12,8 @@ interface PassFailDistributionChartProps {
 }
 
 const chartConfig = {
-  students: {
-    label: "Students",
+  entries: {
+    label: "Course Entries",
   },
   pass: {
     label: "Pass",
@@ -25,15 +25,14 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-// Removed renderCustomizedLabel function as labels will be in the legend
-
 export default function PassFailDistributionChart({ data }: PassFailDistributionChartProps) {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
     let passCount = 0;
     let failCount = 0;
     data.forEach(item => {
-      if (item.pass) {
+      // A Grade Point (GP) of 0 is a fail.
+      if (item.GP > 0) {
         passCount++;
       } else {
         failCount++;
@@ -45,7 +44,7 @@ export default function PassFailDistributionChart({ data }: PassFailDistribution
     ].filter(d => d.count > 0);
   }, [data]);
 
-  const totalStudents = useMemo(() => {
+  const totalEntries = useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.count, 0);
   }, [chartData]);
 
@@ -64,21 +63,18 @@ export default function PassFailDistributionChart({ data }: PassFailDistribution
   }
   
   const CustomLegend = (props: any) => {
-    const { payload } = props; // payload is an array of legend items from Recharts
-    if (!payload || payload.length === 0 || totalStudents === 0) {
+    const { payload } = props;
+    if (!payload || payload.length === 0 || totalEntries === 0) {
       return null;
     }
 
     return (
       <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 mt-3 text-sm">
         {payload.map((entry: any, index: number) => {
-          // entry.value is the status (e.g., 'Pass')
-          // entry.payload.count is the actual count for this status from chartData
-          // entry.color is the fill color for the swatch
           const statusKey = entry.value.toLowerCase() as keyof typeof chartConfig;
           const label = chartConfig[statusKey]?.label || entry.value;
           const count = entry.payload.count;
-          const percentage = (count / totalStudents) * 100;
+          const percentage = (count / totalEntries) * 100;
 
           return (
             <div key={`item-${index}`} className="flex items-center space-x-1.5">
@@ -97,13 +93,13 @@ export default function PassFailDistributionChart({ data }: PassFailDistribution
       <CardHeader>
         <CardTitle>Pass/Fail Distribution</CardTitle>
         <CardDescription>
-          Overall student performance: {totalStudents} students analyzed.
+          Overall distribution for {totalEntries} course entries analyzed.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center"> {/* Changed to flex-col for legend positioning */}
+      <CardContent className="flex flex-col items-center justify-center">
         <ChartContainer
           config={chartConfig}
-          className="mx-auto aspect-square h-[250px] w-full" // Ensure it takes available width
+          className="mx-auto aspect-square h-[250px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -117,8 +113,6 @@ export default function PassFailDistributionChart({ data }: PassFailDistribution
                 nameKey="status"
                 innerRadius={60}
                 strokeWidth={5}
-                // labelLine={false} // Removed
-                // label={renderCustomizedLabel} // Removed
               >
                 {chartData.map((entry) => (
                   <Cell key={`cell-${entry.status}`} fill={entry.fill} />

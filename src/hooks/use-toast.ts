@@ -1,3 +1,4 @@
+
 "use client"
 
 // Inspired by react-hot-toast library
@@ -9,7 +10,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 5000 // Set to 5 seconds
 
 type ToasterToast = ToastProps & {
   id: string
@@ -163,6 +164,9 @@ function toast({ ...props }: Toast) {
       },
     },
   })
+
+  // Start the timer for removal as soon as the toast is added
+  addToRemoveQueue(id);
 
   return {
     id: id,

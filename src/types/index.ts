@@ -1,109 +1,107 @@
 
 export interface StudentResult {
-  Name: string;
+  id: string; // Unique ID for React keys
   'Matric No': string;
-  Course: string;
-  Score: number;
-  Semester: string;
-  Level: string;
-  [key: string]: any; // For any unexpected columns from CSV, or for flexibility
+  'Student Name': string;
+  Level?: string;
+  Semester?: string;
+  'Course Code': string;
+  'Course Title'?: string;
+  'Credit Units': number;
+  Grade: string;
+  GP: number;
+  'Quality Points': number;
+  GPA: number;
+  CGPA: number;
+  [key: string]: any; // For any unexpected columns from CSV
 }
 
-export interface ProcessedStudentResult extends StudentResult {
-  id: string; // Unique ID for React keys, typically Matric No + Course + Semester
-  gpa?: number; // Optional GPA, calculated client-side
-  pass: boolean; // True if Score >= 40
-}
+// This interface is largely the same as StudentResult now. We can unify later if needed.
+export type ProcessedStudentResult = StudentResult;
 
-export interface AtRiskStudent {
-  name: string;
-  matricNo: string;
-  averageScore: number;
-  reason: string;
-}
+
+// --- AI Insight Types ---
 
 export interface TopPerformingStudent {
-  name: string;
+  name:string;
   matricNo: string;
-  averageScore: number;
+  cgpa: number;
   reason: string;
 }
 
 export interface HighFailureCourse {
   course: string;
-  failureRate: number; // As a decimal, e.g., 0.45 for 45%
+  failureRate: number;
   reason:string;
 }
 
-export interface PerformanceStabilityInsight {
-  studentName: string;
-  matricNo: string;
-  minScore: number;
-  maxScore: number;
-  scoreRange: number;
-  coursesEvaluated: number;
-  note: string;
+export interface GradeDistribution {
+    grade: 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+    count: number;
+    percentage: number;
 }
 
-export interface PeerPerformanceBandStudent {
-  studentName: string;
-  matricNo: string;
+export interface CourseGradeDistribution {
   course: string;
-  score: number;
-  courseMedian: number;
-  band: 'Significantly Above Median' | 'Above Median' | 'At Median' | 'Below Median' | 'Significantly Below Median';
-  reason: string;
-}
-
-export interface CourseCohortPerformanceVariation {
-  course: string;
-  cohort1Description: string; // e.g., "Semester X"
-  cohort1Metric: string; // e.g., "Average Score: 75%" or "Pass Rate: 80%"
-  cohort2Description: string; // e.g., "Semester Y"
-  cohort2Metric: string; // e.g., "Average Score: 50%" or "Pass Rate: 45%"
-  variationReason: string; // AI's interpretation of the difference
-}
-
-export interface ScoreCluster {
-  course: string;
-  scoreRange: string; // e.g., "39-42"
-  studentCount: number;
-  percentageOfClass?: number; // Percentage of students in this course falling into this cluster
+  distribution: GradeDistribution[];
   observation: string;
 }
 
-export interface AcademicResilienceStudent {
-  studentName: string;
-  matricNo: string;
-  failingSemester: string; // Semester where they had a failure
-  failedCourseCount: number;
-  recoverySemester: string; // Subsequent semester with good performance
-  recoveryAverageScore: number;
-  note: string;
+export interface AcademicStandingDistribution {
+  standing: string;
+  count: number;
+  percentage: number;
+  cgpaRange: string;
 }
 
-export interface CourseImpactInsight {
-  course: string;
-  impactDescription: string; // e.g., "High Positive Impact", "Significant Negative Impact"
-  observation: string; // AI's reasoning or detailed observation
+export interface KeyPerformanceIndicator {
+  metric: string;
+  value: string;
+  observation: string;
+}
+
+export interface CourseDifficultyRanking {
+    course: string;
+    averageGp: number;
+    studentCount: number;
+}
+
+export interface MostAndLeastConsistentStudents {
+    type: 'Most Consistent' | 'Least Consistent';
+    studentName: string;
+    matricNo: string;
+    cgpa: number;
+    gpaStandardDeviation: number;
+}
+
+export interface FoundationalCourseImpact {
+    course: string;
+    averageGpForHighPerformers: number;
+    observation: string;
+}
+
+export interface GradePointCorrelation {
+  finding: string;
 }
 
 export interface AiInsights {
-  atRiskStudents: AtRiskStudent[];
-  highFailureCourses: HighFailureCourse[];
   topPerformingStudents: TopPerformingStudent[];
-  performanceStability: PerformanceStabilityInsight[];
-  peerPerformanceBands: PeerPerformanceBandStudent[];
-  cohortPerformanceVariations: CourseCohortPerformanceVariation[];
-  scoreClusters: ScoreCluster[];
-  academicResilience: AcademicResilienceStudent[];
-  courseImpactInsights: CourseImpactInsight[];
+  highFailureCourses: HighFailureCourse[];
+  courseGradeDistributions: CourseGradeDistribution[];
+  academicStandingDistribution: AcademicStandingDistribution[];
+  keyPerformanceIndicators: KeyPerformanceIndicator[];
+  courseDifficultyRanking: CourseDifficultyRanking[];
+  mostAndLeastConsistentStudents: MostAndLeastConsistentStudents[];
+  foundationalCourseImpact: FoundationalCourseImpact[];
+  gradePointCorrelation: GradePointCorrelation[];
 }
 
-// For chart data
-export interface CourseAverageScore {
+
+// --- Chart and Stat Types ---
+
+export interface CourseAverageGpa {
   course: string;
-  averageScore: number;
+  averageGpa: number;
 }
 
 export interface PassFailDistribution {
@@ -111,12 +109,14 @@ export interface PassFailDistribution {
   count: number;
 }
 
-// For Overall Performance Metrics
-export interface OverallPerformanceMetrics {
-  totalUniqueStudents: number;
-  overallAverageScore: number; // Mean
-  overallPassRate: number; // Percentage
-  medianScore: number;
-  modeScore: number | string; // Can be a string like "Multiple"
-  standardDeviation: number;
+export interface CourseStats {
+    course: string;
+    studentCount: number;
+    passCount: number;
+    failCount: number;
+    passRate: number; // percentage
+    meanGpa: number;
+    medianGpa: number;
+    modeGpa: string;
+    stdDevGpa: number;
 }

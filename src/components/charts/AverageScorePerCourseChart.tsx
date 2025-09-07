@@ -1,48 +1,52 @@
+
 "use client"
 
-import type { ProcessedStudentResult, CourseAverageScore } from "@/types";
+import type { ProcessedStudentResult } from "@/types";
 import { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface AverageScorePerCourseChartProps {
+interface AverageGpaPerCourseChartProps {
   data: ProcessedStudentResult[];
 }
 
 const chartConfig = {
-  averageScore: {
-    label: "Avg. Score",
+  averageGpa: {
+    label: "Avg. GP",
     color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig
 
-export default function AverageScorePerCourseChart({ data }: AverageScorePerCourseChartProps) {
+export default function AverageScorePerCourseChart({ data }: AverageGpaPerCourseChartProps) {
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
-    const courseScores: { [course: string]: { totalScore: number; count: number } } = {};
+    const courseGPs: { [courseCode: string]: { totalGP: number; count: number, courseTitle: string } } = {};
+    
     data.forEach(item => {
-      if (!courseScores[item.Course]) {
-        courseScores[item.Course] = { totalScore: 0, count: 0 };
+      const courseCode = item['Course Code'];
+      if (!courseGPs[courseCode]) {
+        courseGPs[courseCode] = { totalGP: 0, count: 0, courseTitle: item['Course Title'] || courseCode };
       }
-      courseScores[item.Course].totalScore += item.Score;
-      courseScores[item.Course].count += 1;
+      courseGPs[courseCode].totalGP += item.GP;
+      courseGPs[courseCode].count += 1;
     });
-    return Object.entries(courseScores).map(([course, scores]) => ({
-      course,
-      averageScore: parseFloat((scores.totalScore / scores.count).toFixed(2)),
-    })).sort((a,b) => b.averageScore - a.averageScore);
+
+    return Object.entries(courseGPs).map(([courseCode, gps]) => ({
+      course: gps.courseTitle,
+      averageGpa: parseFloat((gps.totalGP / gps.count).toFixed(2)),
+    })).sort((a,b) => b.averageGpa - a.averageGpa);
   }, [data]);
 
   if (chartData.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Average Score per Course</CardTitle>
+          <CardTitle>Average Grade Point per Course</CardTitle>
           <CardDescription>No data available to display chart.</CardDescription>
         </CardHeader>
         <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-muted-foreground">Upload data to see this chart.</p>
+          <p className="text-muted-foreground">Upload data or clear filters to see this chart.</p>
         </CardContent>
       </Card>
     );
@@ -51,8 +55,8 @@ export default function AverageScorePerCourseChart({ data }: AverageScorePerCour
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Average Score per Course</CardTitle>
-        <CardDescription>Visual representation of average scores achieved in each course.</CardDescription>
+        <CardTitle>Average Grade Point (GP) per Course</CardTitle>
+        <CardDescription>This chart shows the average Grade Point for each course on a 4.0 scale.</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
@@ -67,10 +71,19 @@ export default function AverageScorePerCourseChart({ data }: AverageScorePerCour
                 interval={0}
                 tick={{ fontSize: 10 }} 
               />
-              <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-              <Tooltip content={<ChartTooltipContent />} />
+              <YAxis domain={[0, 4]} tickFormatter={(value) => value.toFixed(1)} />
+              <Tooltip 
+                content={<ChartTooltipContent 
+                    formatter={(value, name) => {
+                       if (name === 'averageGpa' && typeof value === 'number') {
+                         return [`${value.toFixed(2)} GP`, 'Average Grade Point'];
+                       }
+                       return [value, name];
+                    }}
+                />} 
+              />
               <Legend />
-              <Bar dataKey="averageScore" fill="var(--color-averageScore)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="averageGpa" fill="var(--color-averageGpa)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>

@@ -5,10 +5,10 @@ import { useState, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useData } from '@/contexts/DataContext';
-import { parseCSV } from '@/lib/csvParser';
+import { parseStudentDataFile } from '@/lib/fileParser';
 import { useToast } from '@/hooks/use-toast';
-import { UploadCloud, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
-import type { ProcessedStudentResult, StudentResult } from '@/types';
+import { UploadCloud, Loader2, CheckCircle } from 'lucide-react';
+import type { ProcessedStudentResult } from '@/types';
 
 interface FileUploadProps {
   onUploadComplete: (data: ProcessedStudentResult[]) => void;
@@ -17,18 +17,25 @@ interface FileUploadProps {
 export default function FileUpload({ onUploadComplete }: FileUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
-  const { setRawStudentData } = useData();
   const { toast } = useToast();
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
-      if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+      const fileType = file.type;
+      const fileName = file.name;
+      const allowedTypes = [
+        'text/csv', 
+        'application/vnd.ms-excel', 
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ];
+
+      if (allowedTypes.includes(fileType) || fileName.endsWith('.csv') || fileName.endsWith('.xlsx')) {
         setSelectedFile(file);
       } else {
         toast({
           title: "Invalid File Type",
-          description: "Please upload a CSV file.",
+          description: "Please upload a CSV or XLSX file.",
           variant: "destructive",
         });
         setSelectedFile(null);
@@ -37,34 +44,11 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
     }
   };
 
-  // GPA calculation logic (simple example)
-  const calculateGPA = (score: number): number => {
-    if (score >= 90) return 4.0;
-    if (score >= 80) return 3.5;
-    if (score >= 70) return 3.0;
-    if (score >= 60) return 2.5;
-    if (score >= 50) return 2.0;
-    if (score >= 40) return 1.5;
-    return 1.0;
-  };
-
-  const processAndSetData = (studentResults: StudentResult[]): ProcessedStudentResult[] => {
-    return studentResults.map((result, index) => ({
-      ...result,
-      // Ensure unique ID by appending the index from the mapping operation
-      id: `${result['Matric No'] || `no-matric-${index}`}-${result.Course}-${result.Semester}-${index}`, 
-      Score: Number(result.Score), // Ensure score is a number
-      gpa: calculateGPA(Number(result.Score)),
-      pass: Number(result.Score) >= 40,
-    }));
-  };
-
-
   const handleParseFile = async () => {
     if (!selectedFile) {
       toast({
         title: "No File Selected",
-        description: "Please select a CSV file to parse.",
+        description: "Please select a file to parse.",
         variant: "destructive",
       });
       return;
@@ -72,9 +56,9 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
 
     setIsParsing(true);
     try {
-      const { data, errors } = await parseCSV(selectedFile);
+      const { data, errors } = await parseStudentDataFile(selectedFile);
       if (errors.length > 0) {
-        errors.forEach(error => console.error("CSV Parsing Error:", error));
+        errors.forEach(error => console.error("File Parsing Error:", error));
         toast({
           title: "Parsing Issues",
           description: `Encountered ${errors.length} issue(s) while parsing. Check console for details. Some data might be missing or incorrect.`,
@@ -85,16 +69,14 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
       if (data.length === 0 && errors.length > 0) {
          toast({
           title: "Parsing Failed",
-          description: "Could not parse any data from the file. Please check the file format.",
+          description: "Could not parse any data from the file. Please check the file format and required columns.",
           variant: "destructive",
         });
         setIsParsing(false);
         return;
       }
       
-      setRawStudentData(data); // Store raw data for AI insights
-      const processed = processAndSetData(data);
-      onUploadComplete(processed); // Pass processed data to parent
+      onUploadComplete(data);
 
       toast({
         title: "File Parsed Successfully",
@@ -103,10 +85,10 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
       });
 
     } catch (error) {
-      console.error("Error parsing CSV:", error);
+      console.error("Error parsing file:", error);
       toast({
         title: "Error Parsing File",
-        description: "An unexpected error occurred. Please check the console.",
+        description: `An unexpected error occurred. ${error instanceof Error ? error.message : 'Please check the console.'}`,
         variant: "destructive",
       });
     } finally {
@@ -116,11 +98,11 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
 
   return (
     <div className="space-y-4 p-6 bg-card rounded-lg shadow">
-      <h2 className="text-xl font-semibold text-card-foreground">Upload Student Results CSV</h2>
+      <h2 className="text-xl font-semibold text-card-foreground">Upload Student Results File</h2>
       <div className="flex flex-col sm:flex-row gap-4 items-center">
         <Input
           type="file"
-          accept=".csv"
+          accept=".csv, .xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
           onChange={handleFileChange}
           className="flex-grow h-11 px-3 py-0 align-middle file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
           disabled={isParsing}
@@ -140,4 +122,3 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
     </div>
   );
 }
-

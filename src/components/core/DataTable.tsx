@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ProcessedStudentResult } from '@/types';
@@ -25,8 +26,8 @@ type SortKey = keyof ProcessedStudentResult | null;
 
 export default function DataTable({ data }: DataTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortKey, setSortKey] = useState<SortKey>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortKey, setSortKey] = useState<SortKey>('CGPA');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const handleSort = (key: keyof ProcessedStudentResult) => {
     if (sortKey === key) {
@@ -48,14 +49,19 @@ export default function DataTable({ data }: DataTableProps) {
   const filteredAndSortedData = data
     .filter(item => {
       if (!searchTerm) return true;
+      const lowercasedSearchTerm = searchTerm.toLowerCase();
+      // Also search by course title if it exists
+      const courseTitle = item['Course Title'] || '';
       return Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      );
+        String(value).toLowerCase().includes(lowercasedSearchTerm)
+      ) || courseTitle.toLowerCase().includes(lowercasedSearchTerm);
     })
     .sort((a, b) => {
       if (!sortKey) return 0;
       const valA = a[sortKey];
       const valB = b[sortKey];
+
+      if (valA === undefined || valB === undefined) return 0;
 
       if (typeof valA === 'number' && typeof valB === 'number') {
         return sortOrder === 'asc' ? valA - valB : valB - valA;
@@ -71,14 +77,18 @@ export default function DataTable({ data }: DataTableProps) {
   }
   
   const headers: { key: keyof ProcessedStudentResult, label: string }[] = [
-    { key: 'Name', label: 'Name' },
+    { key: 'Student Name', label: 'Student Name' },
     { key: 'Matric No', label: 'Matric No' },
-    { key: 'Course', label: 'Course' },
-    { key: 'Score', label: 'Score' },
-    { key: 'Semester', label: 'Semester' },
     { key: 'Level', label: 'Level' },
-    { key: 'gpa', label: 'GPA (Est.)' },
-    { key: 'pass', label: 'Status' },
+    { key: 'Semester', label: 'Semester' },
+    { key: 'Course Code', label: 'Course Code' },
+    { key: 'Course Title', label: 'Course Title' },
+    { key: 'Credit Units', label: 'Units' },
+    { key: 'Grade', label: 'Grade' },
+    { key: 'GP', label: 'GP' },
+    { key: 'Quality Points', label: 'QP' },
+    { key: 'GPA', label: 'GPA' },
+    { key: 'CGPA', label: 'CGPA' },
   ];
 
 
@@ -92,7 +102,7 @@ export default function DataTable({ data }: DataTableProps) {
       />
       <ScrollArea className="rounded-md border shadow-md overflow-auto" style={{maxHeight: '600px'}}>
         <Table>
-          <TableCaption>A list of student results.</TableCaption>
+          <TableCaption>A list of student results. Click on a column header to sort.</TableCaption>
           <TableHeader className="sticky top-0 bg-card z-10">
             <TableRow>
               {headers.map(header => (
@@ -105,24 +115,28 @@ export default function DataTable({ data }: DataTableProps) {
           <TableBody>
             {filteredAndSortedData.map((item) => (
               <TableRow key={item.id}>
-                <TableCell>{item.Name}</TableCell>
+                <TableCell>{item['Student Name']}</TableCell>
                 <TableCell>{item['Matric No']}</TableCell>
-                <TableCell>{item.Course}</TableCell>
-                <TableCell>{item.Score}</TableCell>
-                <TableCell>{item.Semester}</TableCell>
-                <TableCell>{item.Level}</TableCell>
-                <TableCell>{item.gpa?.toFixed(2) ?? 'N/A'}</TableCell>
+                <TableCell>{item.Level || 'N/A'}</TableCell>
+                <TableCell>{item.Semester || 'N/A'}</TableCell>
+                <TableCell>{item['Course Code']}</TableCell>
+                <TableCell>{item['Course Title']}</TableCell>
+                <TableCell>{item['Credit Units']}</TableCell>
                 <TableCell>
-                  <Badge variant={item.pass ? 'default' : 'destructive'} className={item.pass ? 'bg-green-600 hover:bg-green-700' : ''}>
-                    {item.pass ? 'Pass' : 'Fail'}
+                   <Badge variant={item.GP > 0 ? 'default' : 'destructive'} className={item.GP > 0 ? 'bg-green-600 hover:bg-green-700' : ''}>
+                    {item.Grade}
                   </Badge>
                 </TableCell>
+                <TableCell>{item.GP.toFixed(2)}</TableCell>
+                <TableCell>{item['Quality Points'].toFixed(2)}</TableCell>
+                <TableCell>{item.GPA.toFixed(2)}</TableCell>
+                <TableCell className="font-semibold">{item.CGPA.toFixed(2)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
         <ScrollBar orientation="horizontal" />
-        <ScrollBar orientation="vertical" /> {/* Explicitly add vertical scrollbar if needed by design, ScrollArea usually handles this */}
+        <ScrollBar orientation="vertical" />
       </ScrollArea>
       {filteredAndSortedData.length === 0 && searchTerm && (
         <p className="text-center text-muted-foreground py-4">No results found for "{searchTerm}".</p>

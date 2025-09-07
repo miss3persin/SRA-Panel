@@ -4,7 +4,7 @@
 import type { AiInsights } from '@/types';
 import InsightCard from './InsightCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle, CheckCircle, Loader2, Info as InfoIcon, Users, BookOpen, Award, Activity, UsersRound, Sigma, Sparkle, Repeat, Focus } from 'lucide-react';
+import { CheckCircle, Loader2, Info as InfoIcon, Award, BookOpen, Percent, GraduationCap, Target, ListOrdered, Activity, Book, Focus } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface AiInsightsDisplayProps {
@@ -23,15 +23,15 @@ export default function AiInsightsDisplay({ insights, isLoading }: AiInsightsDis
   }
 
   if (!insights || 
-      (insights.atRiskStudents.length === 0 &&
+      (insights.topPerformingStudents.length === 0 &&
       insights.highFailureCourses.length === 0 &&
-      insights.topPerformingStudents.length === 0 &&
-      insights.performanceStability.length === 0 &&
-      insights.peerPerformanceBands.length === 0 &&
-      insights.cohortPerformanceVariations.length === 0 &&
-      insights.scoreClusters.length === 0 &&
-      insights.academicResilience.length === 0 &&
-      insights.courseImpactInsights.length === 0)) {
+      insights.courseGradeDistributions.length === 0 &&
+      insights.academicStandingDistribution.length === 0 &&
+      insights.keyPerformanceIndicators.length === 0 &&
+      insights.courseDifficultyRanking.length === 0 &&
+      insights.mostAndLeastConsistentStudents.length === 0 &&
+      insights.foundationalCourseImpact.length === 0 &&
+      insights.gradePointCorrelation.length === 0)) {
     
     if (!insights && !isLoading) { 
         return (
@@ -39,7 +39,7 @@ export default function AiInsightsDisplay({ insights, isLoading }: AiInsightsDis
             <InfoIcon className="h-4 w-4"/>
             <AlertTitle>No AI Insights Available</AlertTitle>
             <AlertDescription>
-              Click "Generate AI Insights" to analyze the student data.
+              Click "Generate AI Insights" to analyze the student data using the official GPA and CGPA from your file.
             </AlertDescription>
           </Alert>
         );
@@ -47,44 +47,45 @@ export default function AiInsightsDisplay({ insights, isLoading }: AiInsightsDis
     return (
        <Alert className="border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400">
           <CheckCircle className="h-4 w-4 text-green-500" />
-          <AlertTitle className="text-green-700 dark:text-green-300">All Clear or More Data Needed!</AlertTitle>
+          <AlertTitle className="text-green-700 dark:text-green-300">All Clear!</AlertTitle>
           <AlertDescription>
-            Based on the current data and criteria, no specific insights were prominently detected by the AI across all categories. This could mean everything is stable, or more diverse data might reveal deeper patterns.
+            The AI analysis did not detect any significant areas of concern based on the GPA-related criteria. This could indicate stable performance across the dataset.
           </AlertDescription>
         </Alert>
     );
   }
 
   const { 
-    atRiskStudents = [], 
-    highFailureCourses = [], 
     topPerformingStudents = [],
-    performanceStability = [],
-    peerPerformanceBands = [],
-    cohortPerformanceVariations = [],
-    scoreClusters = [],
-    academicResilience = [],
-    courseImpactInsights = []
+    highFailureCourses = [], 
+    courseGradeDistributions = [],
+    academicStandingDistribution = [], 
+    keyPerformanceIndicators = [],
+    courseDifficultyRanking = [],
+    mostAndLeastConsistentStudents = [],
+    foundationalCourseImpact = [],
+    gradePointCorrelation = []
   } = insights;
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold tracking-tight">AI-Powered Insights</h2>
+      <h2 className="text-2xl font-semibold tracking-tight">AI-Powered Insights (4.0 CGPA Scale)</h2>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <InsightCard
-          title="At-Risk Students"
-          CustomIcon={<Users className="h-6 w-6 text-red-500" />}
-          variant={atRiskStudents.length > 0 ? "danger" : "success"}
-          value={atRiskStudents.length}
-          description={atRiskStudents.length > 0 ? "Students identified as potentially needing support." : "No students identified as at-risk."}
+         <InsightCard
+          title="Top Performing Students"
+          icon="custom"
+          CustomIcon={<Award className="h-6 w-6 text-yellow-500" />}
+          variant={topPerformingStudents.length > 0 ? "highlight" : "neutral"}
+          value={topPerformingStudents.length}
+          description={topPerformingStudents.length > 0 ? "Top 3 students by official CGPA." : "No top performers identified."}
         >
-          {atRiskStudents.length > 0 && (
+          {topPerformingStudents.length > 0 && (
             <ScrollArea className="h-[200px] mt-2">
               <ul className="space-y-1 text-sm">
-                {atRiskStudents.map((student, index) => (
+                {topPerformingStudents.map((student, index) => (
                   <li key={index} className="p-2 rounded-md bg-muted/50">
-                    <strong>{student.name}</strong> ({student.matricNo}): Avg Score: {student.averageScore.toFixed(1)}. {student.reason}
+                    <strong>{student.name}</strong> ({student.matricNo}): Official CGPA: {student.cgpa.toFixed(2)}. {student.reason}
                   </li>
                 ))}
               </ul>
@@ -93,18 +94,19 @@ export default function AiInsightsDisplay({ insights, isLoading }: AiInsightsDis
         </InsightCard>
 
         <InsightCard
-          title="Top Performing Students"
-          CustomIcon={<Award className="h-6 w-6 text-yellow-500" />}
-          variant={topPerformingStudents.length > 0 ? "highlight" : "neutral"}
-          value={topPerformingStudents.length}
-          description={topPerformingStudents.length > 0 ? "Students demonstrating excellent performance." : "No top performers identified by AI yet."}
+          title="Courses with High Failure Rates"
+          icon="custom"
+          CustomIcon={<BookOpen className="h-6 w-6 text-red-500" />}
+          variant={highFailureCourses.length > 0 ? "danger" : "success"}
+          value={highFailureCourses.length}
+          description={highFailureCourses.length > 0 ? "Courses with a Grade Point (GP) failure rate over 40%." : "No courses with high failure rates detected."}
         >
-          {topPerformingStudents.length > 0 && (
-            <ScrollArea className="h-[200px] mt-2">
+          {highFailureCourses.length > 0 && (
+             <ScrollArea className="h-[200px] mt-2">
               <ul className="space-y-1 text-sm">
-                {topPerformingStudents.map((student, index) => (
+                {highFailureCourses.map((course, index) => (
                   <li key={index} className="p-2 rounded-md bg-muted/50">
-                    <strong>{student.name}</strong> ({student.matricNo}): Avg Score: {student.averageScore.toFixed(1)}. {student.reason}
+                    <strong>{course.course}</strong> ({(course.failureRate * 100).toFixed(1)}% failure rate): {course.reason}
                   </li>
                 ))}
               </ul>
@@ -113,18 +115,119 @@ export default function AiInsightsDisplay({ insights, isLoading }: AiInsightsDis
         </InsightCard>
         
         <InsightCard
-          title="Courses with High Failure Rates"
-          CustomIcon={<BookOpen className="h-6 w-6 text-red-500" />}
-          variant={highFailureCourses.length > 0 ? "danger" : "success"}
-          value={highFailureCourses.length}
-          description={highFailureCourses.length > 0 ? "Courses where a significant number of students are struggling." : "No courses identified with high failure rates."}
+          title="Course Grade Distributions"
+          icon="custom"
+          CustomIcon={<Percent className="h-6 w-6 text-purple-500" />} 
+          variant={courseGradeDistributions.length > 0 ? "purple" : "neutral"}
+          description="How grades (A, B, C, F etc.) are distributed within courses."
         >
-          {highFailureCourses.length > 0 && (
+          {courseGradeDistributions.length > 0 && (
+            <ScrollArea className="h-[200px] mt-2">
+              <ul className="space-y-1 text-sm">
+                {courseGradeDistributions.map((s, i) => (
+                  <li key={i} className="p-2 rounded-md bg-muted/50">
+                    <strong>{s.course}</strong>: {s.distribution.map(d => `${d.grade}: ${d.count}`).join(', ')}. <br/><em>{s.observation}</em>
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          )}
+        </InsightCard>
+
+        <InsightCard
+          title="Academic Standing Distribution"
+          icon="custom"
+          CustomIcon={<GraduationCap className="h-6 w-6 text-blue-500" />}
+          variant={academicStandingDistribution.length > 0 ? "info" : "neutral"}
+          description="Distribution of unique students by final CGPA."
+        >
+          {academicStandingDistribution.length > 0 && (
+            <ScrollArea className="h-[200px] mt-2">
+              <ul className="space-y-1 text-sm">
+                {academicStandingDistribution.map((s, index) => (
+                  <li key={index} className="p-2 rounded-md bg-muted/50">
+                    <strong>{s.standing}</strong> ({s.cgpaRange}): {s.count} students ({(s.percentage * 100).toFixed(1)}%)
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          )}
+        </InsightCard>
+
+        <InsightCard
+          title="Key Performance Indicators"
+          icon="custom"
+          CustomIcon={<Target className="h-6 w-6 text-green-500" />}
+          variant="success"
+          description="Overall dataset performance metrics."
+        >
+          {keyPerformanceIndicators.length > 0 && (
+            <ScrollArea className="h-[200px] mt-2">
+              <ul className="space-y-1 text-sm">
+                {keyPerformanceIndicators.map((kpi, i) => (
+                  <li key={i} className="p-2 rounded-md bg-muted/50">
+                    <strong>{kpi.metric}</strong>: {kpi.value} <br/><em>{kpi.observation}</em>
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          )}
+        </InsightCard>
+
+        <InsightCard
+          title="Course Difficulty Ranking"
+          icon="custom"
+          CustomIcon={<ListOrdered className="h-6 w-6 text-orange-500" />}
+          variant={"warning"}
+          description="Top 5 hardest courses by average Grade Point."
+        >
+          {courseDifficultyRanking.length > 0 && (
+            <ScrollArea className="h-[200px] mt-2">
+              <ul className="space-y-1 text-sm">
+                {courseDifficultyRanking.map((s, i) => (
+                  <li key={i} className="p-2 rounded-md bg-muted/50">
+                    <strong>{i + 1}. {s.course}</strong> (Avg. GP: {s.averageGp.toFixed(2)}) - {s.studentCount} students.
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          )}
+        </InsightCard>
+
+         <InsightCard
+          title="Student Consistency"
+          icon="custom"
+          CustomIcon={<Activity className="h-6 w-6 text-indigo-500" />}
+          variant={"indigo"}
+          description="Most and least consistent students by GPA variance."
+        >
+          {mostAndLeastConsistentStudents.length > 0 && (
+            <ScrollArea className="h-[200px] mt-2">
+              <ul className="space-y-1 text-sm">
+                {mostAndLeastConsistentStudents.map((s, i) => (
+                  <li key={i} className="p-2 rounded-md bg-muted/50">
+                    <strong>{s.type}</strong>: {s.studentName} ({s.matricNo}) <br/>
+                    GPA Std. Dev: {s.gpaStandardDeviation.toFixed(2)}
+                  </li>
+                ))}
+              </ul>
+            </ScrollArea>
+          )}
+        </InsightCard>
+
+        <InsightCard
+          title="Foundational Course Impact"
+          icon="custom"
+          CustomIcon={<Book className="h-6 w-6 text-cyan-500" />}
+          variant={"cyan"}
+          description="The 100-Level course most critical for success."
+        >
+          {foundationalCourseImpact.length > 0 && (
              <ScrollArea className="h-[200px] mt-2">
               <ul className="space-y-1 text-sm">
-                {highFailureCourses.map((course, index) => (
-                  <li key={index} className="p-2 rounded-md bg-muted/50">
-                    <strong>{course.course}</strong> ({(course.failureRate * 100).toFixed(1)}% failure): {course.reason}
+                {foundationalCourseImpact.map((s, i) => (
+                  <li key={i} className="p-2 rounded-md bg-muted/50">
+                    <strong>{s.course}</strong> is key. <br/><em>{s.observation}</em>
                   </li>
                 ))}
               </ul>
@@ -133,124 +236,19 @@ export default function AiInsightsDisplay({ insights, isLoading }: AiInsightsDis
         </InsightCard>
 
         <InsightCard
-          title="Performance Stability"
-          CustomIcon={<Activity className="h-6 w-6 text-blue-500" />}
-          variant={performanceStability.length > 0 ? "info" : "neutral"}
-          value={performanceStability.length}
-          description={performanceStability.length > 0 ? "Students with notable score variations." : "Performance appears generally stable or insufficient data."}
+          title="Grade Point Correlation"
+          icon="custom"
+          CustomIcon={<Focus className="h-6 w-6 text-teal-500" />}
+          variant={gradePointCorrelation.length > 0 ? "teal" : "neutral"}
+          description="A key data-driven correlation found in the dataset."
         >
-          {performanceStability.length > 0 && (
-            <ScrollArea className="h-[200px] mt-2">
-              <ul className="space-y-1 text-sm">
-                {performanceStability.map((s, i) => (
-                  <li key={i} className="p-2 rounded-md bg-muted/50">
-                    <strong>{s.studentName}</strong> ({s.matricNo}): Range {s.scoreRange.toFixed(1)} pts ({s.minScore.toFixed(1)}-{s.maxScore.toFixed(1)}) over {s.coursesEvaluated} courses. {s.note}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
+          {gradePointCorrelation.length > 0 && (
+            <div className="mt-2 text-sm p-2 rounded-md bg-muted/50 h-[200px] flex items-center">
+              <p>{gradePointCorrelation[0].finding}</p>
+            </div>
           )}
         </InsightCard>
 
-        <InsightCard
-          title="Peer Performance Bands"
-          CustomIcon={<UsersRound className="h-6 w-6 text-teal-500" />}
-          variant={peerPerformanceBands.length > 0 ? "teal" : "neutral"}
-          value={peerPerformanceBands.length}
-          description={peerPerformanceBands.length > 0 ? "Illustrative examples of student performance relative to course medians." : "No specific peer banding examples highlighted."}
-        >
-          {peerPerformanceBands.length > 0 && (
-            <ScrollArea className="h-[200px] mt-2">
-              <ul className="space-y-1 text-sm">
-                {peerPerformanceBands.map((s, i) => (
-                  <li key={i} className="p-2 rounded-md bg-muted/50">
-                    <strong>{s.studentName}</strong> ({s.matricNo}) in <strong>{s.course}</strong>: Score {s.score.toFixed(1)}, Median {s.courseMedian.toFixed(1)} - {s.band}. {s.reason}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
-          )}
-        </InsightCard>
-
-        <InsightCard
-          title="Cohort Performance Variation"
-          CustomIcon={<Repeat className="h-6 w-6 text-indigo-500" />}
-          variant={cohortPerformanceVariations.length > 0 ? "indigo" : "neutral"}
-          value={cohortPerformanceVariations.length}
-          description={cohortPerformanceVariations.length > 0 ? "Courses showing significant performance differences between cohorts." : "No significant cohort variations detected."}
-        >
-          {cohortPerformanceVariations.length > 0 && (
-            <ScrollArea className="h-[200px] mt-2">
-              <ul className="space-y-1 text-sm">
-                {cohortPerformanceVariations.map((s, i) => (
-                  <li key={i} className="p-2 rounded-md bg-muted/50">
-                    <strong>{s.course}</strong>: {s.cohort1Description} ({s.cohort1Metric}) vs {s.cohort2Description} ({s.cohort2Metric}). Reason: {s.variationReason}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
-          )}
-        </InsightCard>
-
-        <InsightCard
-          title="Score Cluster Detection"
-          CustomIcon={<Sigma className="h-6 w-6 text-purple-500" />} 
-          variant={scoreClusters.length > 0 ? "purple" : "neutral"}
-          value={scoreClusters.length}
-          description={scoreClusters.length > 0 ? "Courses with notable score concentrations." : "No significant score clusters detected."}
-        >
-          {scoreClusters.length > 0 && (
-            <ScrollArea className="h-[200px] mt-2">
-              <ul className="space-y-1 text-sm">
-                {scoreClusters.map((s, i) => (
-                  <li key={i} className="p-2 rounded-md bg-muted/50">
-                    <strong>{s.course}</strong>: {s.studentCount} students in range {s.scoreRange} {s.percentageOfClass ? `(${(s.percentageOfClass * 100).toFixed(1)}% of class)` : ''}. {s.observation}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
-          )}
-        </InsightCard>
-
-        <InsightCard
-          title="Academic Resilience"
-          CustomIcon={<Sparkle className="h-6 w-6 text-green-500" />}
-          variant={academicResilience.length > 0 ? "success" : "neutral"}
-          value={academicResilience.length}
-          description={academicResilience.length > 0 ? "Students showing strong recovery after setbacks." : "No specific academic resilience examples highlighted."}
-        >
-          {academicResilience.length > 0 && (
-            <ScrollArea className="h-[200px] mt-2">
-              <ul className="space-y-1 text-sm">
-                {academicResilience.map((s, i) => (
-                  <li key={i} className="p-2 rounded-md bg-muted/50">
-                    <strong>{s.studentName}</strong> ({s.matricNo}): Failed {s.failedCourseCount} course(s) in {s.failingSemester}, recovered in {s.recoverySemester} (Avg: {s.recoveryAverageScore.toFixed(1)}). {s.note}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
-          )}
-        </InsightCard>
-
-        <InsightCard
-          title="Course Impact Insights"
-          CustomIcon={<Focus className="h-6 w-6 text-cyan-500" />}
-          variant={courseImpactInsights.length > 0 ? "cyan" : "neutral"}
-          value={courseImpactInsights.length}
-          description={courseImpactInsights.length > 0 ? "Courses significantly influencing overall student standing." : "No specific course impact insights highlighted."}
-        >
-          {courseImpactInsights.length > 0 && (
-            <ScrollArea className="h-[200px] mt-2">
-              <ul className="space-y-1 text-sm">
-                {courseImpactInsights.map((s, i) => (
-                  <li key={i} className="p-2 rounded-md bg-muted/50">
-                    <strong>{s.course}</strong>: {s.impactDescription}. <br /><em>Observation:</em> {s.observation}
-                  </li>
-                ))}
-              </ul>
-            </ScrollArea>
-          )}
-        </InsightCard>
       </div>
     </div>
   );

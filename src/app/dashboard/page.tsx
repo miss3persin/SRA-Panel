@@ -7,14 +7,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AverageScorePerCourseChart from '@/components/charts/AverageScorePerCourseChart';
 import PassFailDistributionChart from '@/components/charts/PassFailDistributionChart';
 import AiInsightsDisplay from '@/components/insights/AiInsightsDisplay';
-import OverallPerformanceCard from '@/components/insights/OverallPerformanceCard';
+import CourseStatisticsTable from '@/components/insights/CourseStatisticsTable';
 import PDFExportButton from '@/components/core/PDFExportButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { generateInsights } from '@/ai/flows/generate-insights';
-import type { GenerateInsightsInput } from '@/ai/flows/generate-insights';
+import type { GenerateInsightsInput } from '@/types/ai-insight-types';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, Brain, FilterX, Loader2 } from "lucide-react";
@@ -22,17 +22,14 @@ import DataTable from '@/components/core/DataTable';
 
 function DashboardContent() {
   const { 
-    rawStudentData,
-    processedStudentData,
+    studentData,
     aiInsights, 
     setAiInsights, 
     filters, 
     setFilters, 
-    availableSemesters, 
-    availableLevels, 
     availableCourses,
     filteredData,
-    overallPerformance,
+    courseStats,
     isLoadingInsights,
     setIsLoadingInsights,
   } = useData();
@@ -45,7 +42,7 @@ function DashboardContent() {
 
   useEffect(() => {
     setIsClient(true);
-    if (rawStudentData.length === 0 && processedStudentData.length === 0) {
+    if (studentData.length === 0) {
       toast({
         title: "No Data",
         description: "Please upload student data first.",
@@ -53,10 +50,10 @@ function DashboardContent() {
         action: <Button onClick={() => router.push('/upload')}>Go to Upload</Button>
       });
     }
-  }, [rawStudentData, processedStudentData, router, toast]);
+  }, [studentData, router, toast]);
 
   const handleGenerateInsights = async () => {
-    if (rawStudentData.length === 0) {
+    if (studentData.length === 0) {
       toast({
         title: "No Data for AI",
         description: "Upload student data to generate insights.",
@@ -67,13 +64,18 @@ function DashboardContent() {
     setIsLoadingInsights(true);
     try {
       const aiInput: GenerateInsightsInput = {
-        studentResults: rawStudentData.map(item => ({
-          Name: String(item.Name),
-          'Matric No': String(item['Matric No']),
-          Course: String(item.Course),
-          Score: Number(item.Score),
-          Semester: String(item.Semester),
-          Level: String(item.Level),
+        studentResults: studentData.map(item => ({
+          'Matric No': item['Matric No'],
+          'Student Name': item['Student Name'],
+          'Course Code': item['Course Code'],
+          'Course Title': item['Course Title'],
+          'Credit Units': item['Credit Units'],
+          Grade: item.Grade,
+          GP: item.GP,
+          GPA: item.GPA,
+          CGPA: item.CGPA,
+          Level: item.Level,
+          Semester: item.Semester,
         }))
       };
       const insights = await generateInsights(aiInput);
@@ -95,15 +97,15 @@ function DashboardContent() {
     }
   };
 
-  const handleFilterChange = (type: 'semester' | 'level' | 'course', value: string) => {
+  const handleFilterChange = (type: 'course', value: string) => {
     setFilters({ ...filters, [type]: value === 'all' ? null : value });
   };
 
   const clearFilters = () => {
-    setFilters({ semester: null, level: null, course: null });
+    setFilters({ course: null });
   };
 
-  if (!isClient) { // Prevent hydration mismatch by not rendering data-dependent UI on server
+  if (!isClient) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -112,7 +114,7 @@ function DashboardContent() {
     );
   }
 
-  if (rawStudentData.length === 0 && processedStudentData.length === 0) {
+  if (studentData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-10rem)] p-4">
         <Card className="w-full max-w-md text-center p-8">
@@ -137,7 +139,7 @@ function DashboardContent() {
   const renderContent = () => {
     switch(view) {
       case 'performance':
-        return <OverallPerformanceCard metrics={overallPerformance} isLoading={processedStudentData.length === 0 && rawStudentData.length > 0} />;
+        return <CourseStatisticsTable stats={courseStats} isLoading={studentData.length > 0 && courseStats.length === 0} />;
       case 'charts':
         return (
           <div id="charts-grid-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -151,8 +153,7 @@ function DashboardContent() {
             <CardHeader>
               <CardTitle>Filtered Data Table</CardTitle>
               <CardDescription>
-                Displaying {filteredData.length} of {processedStudentData.length} records based on current filters.
-                Sorting by a column header effectively ranks students/data for that criterion.
+                Displaying {filteredData.length} of {studentData.length} records based on current filters.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -166,9 +167,9 @@ function DashboardContent() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-2xl">AI Insights Engine</CardTitle>
-                <CardDescription>Identify at-risk students, top performers, and challenging courses using AI analysis.</CardDescription>
+                <CardDescription>Generate deep, actionable insights into student performance using a 4.0 CGPA-based analysis.</CardDescription>
               </div>
-              <Button onClick={handleGenerateInsights} disabled={isLoadingInsights || rawStudentData.length === 0}>
+              <Button onClick={handleGenerateInsights} disabled={isLoadingInsights || studentData.length === 0}>
                 {isLoadingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
                 {aiInsights ? 'Regenerate AI Insights' : 'Generate AI Insights'}
               </Button>
@@ -178,13 +179,24 @@ function DashboardContent() {
                 <AiInsightsDisplay insights={aiInsights} isLoading={isLoadingInsights} />
               </CardContent>
             )}
+            {!aiInsights && !isLoadingInsights && (
+                <CardContent>
+                   <Alert>
+                        <Info className="h-4 w-4"/>
+                        <AlertTitle>No AI Insights Available</AlertTitle>
+                        <AlertDescription>
+                          Click "Generate AI Insights" to analyze the student data using the official GPA and CGPA from your file.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            )}
           </Card>
         );
       case 'overview':
       default:
         return (
-          <>
-            <OverallPerformanceCard metrics={overallPerformance} isLoading={processedStudentData.length === 0 && rawStudentData.length > 0} />
+          <div className="space-y-6">
+            <CourseStatisticsTable stats={courseStats} isLoading={studentData.length > 0 && courseStats.length === 0} />
             <div id="charts-grid-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <AverageScorePerCourseChart data={filteredData} />
               <PassFailDistributionChart data={filteredData} />
@@ -193,8 +205,7 @@ function DashboardContent() {
               <CardHeader>
                 <CardTitle>Filtered Data Table</CardTitle>
                 <CardDescription>
-                  Displaying {filteredData.length} of {processedStudentData.length} records based on current filters.
-                  Sorting by a column header effectively ranks students/data for that criterion.
+                  Displaying {filteredData.length} of {studentData.length} records based on current filters.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -205,9 +216,9 @@ function DashboardContent() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-2xl">AI Insights Engine</CardTitle>
-                  <CardDescription>Identify at-risk students, top performers, and challenging courses using AI analysis.</CardDescription>
+                  <CardDescription>Generate deep, actionable insights into student performance using GPA-based analysis.</CardDescription>
                 </div>
-                <Button onClick={handleGenerateInsights} disabled={isLoadingInsights || rawStudentData.length === 0}>
+                <Button onClick={handleGenerateInsights} disabled={isLoadingInsights || studentData.length === 0}>
                   {isLoadingInsights ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Brain className="mr-2 h-4 w-4" />}
                   {aiInsights ? 'Regenerate AI Insights' : 'Generate AI Insights'}
                 </Button>
@@ -217,8 +228,19 @@ function DashboardContent() {
                   <AiInsightsDisplay insights={aiInsights} isLoading={isLoadingInsights} />
                 </CardContent>
               )}
+               {!aiInsights && !isLoadingInsights && (
+                <CardContent>
+                   <Alert>
+                        <Info className="h-4 w-4"/>
+                        <AlertTitle>No AI Insights Available</AlertTitle>
+                        <AlertDescription>
+                          Click "Generate AI Insights" to analyze the student data using the official GPA and CGPA from your file.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+            )}
             </Card>
-          </>
+          </div>
         );
     }
   }
@@ -229,33 +251,13 @@ function DashboardContent() {
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
                 <CardTitle className="text-2xl">Data Filters</CardTitle>
-                <CardDescription>Refine the data displayed in charts and tables below.</CardDescription>
+                <CardDescription>Refine the data displayed in charts and tables below. Metrics are recalculated for the filtered data.</CardDescription>
             </div>
              <PDFExportButton elementIdToPrint="dashboard-content" fileName="Mapoly_SRA_Report" />
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
-            <Label htmlFor="semester-filter">Semester</Label>
-            <Select value={filters.semester || 'all'} onValueChange={(value) => handleFilterChange('semester', value)}>
-              <SelectTrigger id="semester-filter"><SelectValue placeholder="Filter by Semester" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Semesters</SelectItem>
-                {availableSemesters.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="level-filter">Level</Label>
-            <Select value={filters.level || 'all'} onValueChange={(value) => handleFilterChange('level', value)}>
-              <SelectTrigger id="level-filter"><SelectValue placeholder="Filter by Level" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Levels</SelectItem>
-                {availableLevels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="course-filter">Course</Label>
+            <Label htmlFor="course-filter">Filter by Course</Label>
             <Select value={filters.course || 'all'} onValueChange={(value) => handleFilterChange('course', value)}>
               <SelectTrigger id="course-filter"><SelectValue placeholder="Filter by Course" /></SelectTrigger>
               <SelectContent>
@@ -264,7 +266,7 @@ function DashboardContent() {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={clearFilters} variant="outline" disabled={activeFilterCount === 0}>
+          <Button onClick={clearFilters} variant="outline" disabled={activeFilterCount === 0} className="lg:col-start-4">
             <FilterX className="mr-2 h-4 w-4" /> Clear Filters ({activeFilterCount})
           </Button>
         </CardContent>
@@ -283,5 +285,3 @@ export default function DashboardPage() {
     </Suspense>
   );
 }
-
-    

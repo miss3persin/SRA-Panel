@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -12,11 +13,11 @@ import { ArrowRight } from 'lucide-react';
 
 export default function UploadPage() {
   const router = useRouter();
-  const { setProcessedStudentData, processedStudentData, clearData } = useData();
+  const { setStudentData, studentData, clearData } = useData();
   const [showTable, setShowTable] = useState(false);
 
   const handleUploadComplete = (data: ProcessedStudentResult[]) => {
-    setProcessedStudentData(data);
+    setStudentData(data);
     setShowTable(true);
   };
 
@@ -30,19 +31,19 @@ export default function UploadPage() {
       <Card>
         <CardHeader>
           <CardTitle>Upload Student Data</CardTitle>
-          <CardDescription>Upload a CSV file with student results. Required columns: Name, Matric No, Course, Score, Semester, Level.</CardDescription>
+          <CardDescription>Upload a CSV file with student results. Required columns: Matric No, Student Name, Course Code, Credit Units, Grade, GP, GPA, CGPA.</CardDescription>
         </CardHeader>
         <CardContent>
           <FileUpload onUploadComplete={handleUploadComplete} />
         </CardContent>
       </Card>
 
-      {showTable && processedStudentData.length > 0 && (
+      {showTable && studentData.length > 0 && (
         <Card>
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2"> {/* Added flex-wrap and gap-2 */}
             <div>
               <CardTitle>Preview Uploaded Data</CardTitle>
-              <CardDescription>{processedStudentData.length} records loaded.</CardDescription>
+              <CardDescription>{studentData.length} records loaded.</CardDescription>
             </div>
             <div className="flex flex-wrap justify-end gap-2"> {/* Changed space-x-2 to flex-wrap and gap-2 */}
                <Button variant="outline" onClick={handleClearData}>Clear Data</Button>
@@ -52,7 +53,7 @@ export default function UploadPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <DataTable data={processedStudentData} />
+            <DataTable data={studentData} />
           </CardContent>
         </Card>
       )}
