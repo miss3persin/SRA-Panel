@@ -21,8 +21,8 @@ const nextConfig: NextConfig = {
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
-      // Exclude Genkit googleAI from client-side bundle to prevent build errors on Vercel
-      config.externals.push('@genkit-ai/googleai');
+      // Exclude Genkit from client-side bundle to prevent build errors on Vercel
+      config.externals.push('@genkit-ai/googleai', 'genkit');
     }
     return config;
   },
