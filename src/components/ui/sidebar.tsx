@@ -796,7 +796,7 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   sidebarMenuButtonVariants,
-  useSidebar,
+  useSidebar
 }
 
     

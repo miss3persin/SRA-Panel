@@ -16,7 +16,7 @@ import {
   SidebarRail,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  sidebarMenuButtonVariants,
+  sidebarMenuButtonVariants
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -38,9 +38,9 @@ interface AppShellProps {
 
 const navItems = [
   { href: '/upload', label: 'Upload Data', icon: UploadCloud },
-  { 
-    href: '/dashboard', 
-    label: 'Dashboard', 
+  {
+    href: '/dashboard',
+    label: 'Dashboard',
     icon: LayoutDashboard,
     subItems: [
       { href: '/dashboard?view=overview', label: 'Overview', icon: LayoutGrid },
@@ -61,19 +61,19 @@ export default function AppShell({ children }: AppShellProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-       setSidebarOpen(!isMobile);
+      setSidebarOpen(!isMobile);
     }
   }, [isMobile]);
 
   const currentView = searchParams.get('view');
-  
+
   return (
     <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <Sidebar variant="sidebar" collapsible={isMobile ? "offcanvas" : "icon"} className="z-40 md:z-30">
         <SidebarRail />
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center">
-            <Image 
+            <Image
               src="/mapoly-logo.png"
               alt="Mapoly Logo"
               width={40}
@@ -85,125 +85,133 @@ export default function AppShell({ children }: AppShellProps) {
           </Link>
         </SidebarHeader>
         <SidebarContent className="p-2">
-            <Accordion type="multiple" className="w-full group-data-[collapsible=icon]:hidden" defaultValue={['dashboard']}>
-              <SidebarMenu className="gap-2">
-                <SidebarMenuItem>
-                  <Link href="/upload" legacyBehavior passHref>
-                    <SidebarMenuButton
-                      isActive={pathname === '/upload'}
-                      tooltip={{ children: 'Upload Data', className: "group-data-[collapsible=icon]:block hidden" }}
-                      onClick={() => isMobile && setSidebarOpen(false)}
-                    >
-                      <UploadCloud />
-                      <span>Upload Data</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-                <AccordionItem value="dashboard" className="border-none">
-                    <AccordionPrimitive.Header className="flex">
-                        <div
-                            className={cn(
-                                sidebarMenuButtonVariants({ variant: 'ghost', size: 'default' }),
-                                "w-full justify-between h-auto p-0",
-                                pathname === '/dashboard' && "bg-sidebar-accent text-sidebar-accent-foreground"
-                            )}
-                        >
-                            <div className="flex items-center gap-2 p-2">
-                                <LayoutDashboard />
-                                <span>Dashboard</span>
-                            </div>
-                            <AccordionTrigger className='p-2 hover:no-underline [&>svg]:h-4 [&>svg]:w-4'/>
-                        </div>
-                    </AccordionPrimitive.Header>
+          <Accordion type="multiple" className="w-full group-data-[collapsible=icon]:hidden" defaultValue={['dashboard']}>
+            <SidebarMenu className="gap-2">
+              <SidebarMenuItem>
+                <Link href="/upload" legacyBehavior passHref>
+                  <SidebarMenuButton
+                    isActive={pathname === '/upload'}
+                    tooltip={{ children: 'Upload Data', className: "group-data-[collapsible=icon]:block hidden" }}
+                    onClick={() => isMobile && setSidebarOpen(false)}
+                  >
+                    <UploadCloud />
+                    <span>Upload Data</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <AccordionItem value="dashboard" className="border-none">
+                <AccordionPrimitive.Header className="flex">
+                  <div
+                    className={cn(
+                      sidebarMenuButtonVariants({ variant: 'ghost', size: 'default' }),
+                      "w-full justify-between h-auto p-0",
+                      pathname === '/dashboard' && "bg-sidebar-accent text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 p-2">
+                      <LayoutDashboard />
+                      <span>Dashboard</span>
+                    </div>
+                    <AccordionTrigger className='p-2 hover:no-underline [&>svg]:h-4 [&>svg]:w-4' />
+                  </div>
+                </AccordionPrimitive.Header>
 
-                  <AccordionContent className="p-0 pl-7">
-                    <SidebarMenuSub>
-                      {navItems.find(item => item.href === '/dashboard')?.subItems?.map(subItem => (
+                <AccordionContent className="p-0 pl-7">
+                  <SidebarMenuSub>
+                    {navItems.find(item => item.href === '/dashboard')?.subItems?.map((subItem) => {
+                      const Icon = subItem.icon; // 👈 Capitalize it so React treats it as a component
+                      return (
                         <SidebarMenuItem key={subItem.href}>
-                           <Link href={subItem.href} legacyBehavior passHref>
-                              <SidebarMenuSubButton
-                                isActive={pathname === '/dashboard' && (currentView === subItem.href.split('=')[1] || (!currentView && subItem.href.includes('overview')))}
-                                onClick={() => isMobile && setSidebarOpen(false)}
-                                className="w-full"
-                              >
-                                <subItem.icon/>
-                                <span>{subItem.label}</span>
-                              </SidebarMenuSubButton>
-                           </Link>
+                          <Link href={subItem.href} legacyBehavior passHref>
+                            <SidebarMenuSubButton
+                              isActive={
+                                pathname === '/dashboard' &&
+                                (currentView === subItem.href.split('=')[1] ||
+                                  (!currentView && subItem.href.includes('overview')))
+                              }
+                              onClick={() => isMobile && setSidebarOpen(false)}
+                              className="w-full"
+                            >
+                              <Icon />
+                              <span>{subItem.label}</span>
+                            </SidebarMenuSubButton>
+                          </Link>
                         </SidebarMenuItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </AccordionContent>
-                </AccordionItem>
-                <SidebarMenuItem>
-                  <Link href="/about" legacyBehavior passHref>
-                    <SidebarMenuButton
-                      isActive={pathname === '/about'}
-                      tooltip={{ children: 'About', className: "group-data-[collapsible=icon]:block hidden" }}
-                      onClick={() => isMobile && setSidebarOpen(false)}
-                    >
-                      <Info />
-                      <span>About</span>
-                    </SidebarMenuButton>
-                  </Link>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </Accordion>
-            
-            {/* Icon-only view for collapsed sidebar */}
-            <div className="hidden group-data-[collapsible=icon]:block">
-              <SidebarMenu className="gap-2">
-                 <SidebarMenuItem>
-                    <Link href="/upload" legacyBehavior passHref>
-                      <SidebarMenuButton
-                        isActive={pathname === '/upload'}
-                        tooltip={{ children: 'Upload Data' }}
-                        onClick={() => isMobile && setSidebarOpen(false)}
-                      >
-                        <UploadCloud />
-                      </SidebarMenuButton>
-                    </Link>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <Link href="/dashboard" legacyBehavior passHref>
-                        <SidebarMenuButton
-                          isActive={pathname === '/dashboard'}
-                          tooltip={{ children: 'Dashboard Overview' }}
-                        >
-                            <LayoutDashboard />
-                        </SidebarMenuButton>
-                    </Link>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <Link href="/about" legacyBehavior passHref>
-                      <SidebarMenuButton
-                        isActive={pathname === '/about'}
-                        tooltip={{ children: 'About' }}
-                        onClick={() => isMobile && setSidebarOpen(false)}
-                      >
-                        <Info />
-                      </SidebarMenuButton>
-                    </Link>
-                  </SidebarMenuItem>
-              </SidebarMenu>
-            </div>
+                      );
+                    })}
+                  </SidebarMenuSub>
+
+                </AccordionContent>
+              </AccordionItem>
+              <SidebarMenuItem>
+                <Link href="/about" legacyBehavior passHref>
+                  <SidebarMenuButton
+                    isActive={pathname === '/about'}
+                    tooltip={{ children: 'About', className: "group-data-[collapsible=icon]:block hidden" }}
+                    onClick={() => isMobile && setSidebarOpen(false)}
+                  >
+                    <Info />
+                    <span>About</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </Accordion>
+
+          {/* Icon-only view for collapsed sidebar */}
+          <div className="hidden group-data-[collapsible=icon]:block">
+            <SidebarMenu className="gap-2">
+              <SidebarMenuItem>
+                <Link href="/upload" legacyBehavior passHref>
+                  <SidebarMenuButton
+                    isActive={pathname === '/upload'}
+                    tooltip={{ children: 'Upload Data' }}
+                    onClick={() => isMobile && setSidebarOpen(false)}
+                  >
+                    <UploadCloud />
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/dashboard" legacyBehavior passHref>
+                  <SidebarMenuButton
+                    isActive={pathname === '/dashboard'}
+                    tooltip={{ children: 'Dashboard Overview' }}
+                  >
+                    <LayoutDashboard />
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/about" legacyBehavior passHref>
+                  <SidebarMenuButton
+                    isActive={pathname === '/about'}
+                    tooltip={{ children: 'About' }}
+                    onClick={() => isMobile && setSidebarOpen(false)}
+                  >
+                    <Info />
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </div>
 
 
         </SidebarContent>
         <SidebarFooter className="p-4 mt-auto">
-           <Separator className="my-2 group-data-[collapsible=icon]:hidden" />
-           <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+          <Separator className="my-2 group-data-[collapsible=icon]:hidden" />
+          <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
             &copy; {new Date().getFullYear()} Mapoly SRA
-           </p>
+          </p>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="flex flex-col">
         <header className="sticky top-0 z-20 flex items-center justify-between h-16 px-4 sm:px-6 bg-background/80 backdrop-blur-sm border-b">
           <div className="flex items-center gap-2">
-             <SidebarTrigger />
-             <h2 className="text-xl font-semibold">
-                {navItems.find(item => item.href === pathname)?.subItems?.find(sub => `?view=${currentView}` === sub.href.replace('/dashboard', ''))?.label || navItems.find(item => item.href === pathname)?.label || 'Dashboard Overview'}
-             </h2>
+            <SidebarTrigger />
+            <h2 className="text-xl font-semibold">
+              {navItems.find(item => item.href === pathname)?.subItems?.find(sub => `?view=${currentView}` === sub.href.replace('/dashboard', ''))?.label || navItems.find(item => item.href === pathname)?.label || 'Dashboard Overview'}
+            </h2>
           </div>
           <ThemeToggle />
         </header>
